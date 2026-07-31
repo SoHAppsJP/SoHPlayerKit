@@ -20,6 +20,29 @@ import kotlin.math.roundToLong
 
 const val PLAYER_PSEUDO_FRAME_STEP_MS = 33L
 
+/**
+ * FPSから疑似1フレーム分の時間をミリ秒で求める。
+ *
+ * FPSが不明または不正な場合は[fallbackMs]を返す。
+ *
+ * 可変フレームレート動画では平均・公称FPSを基にした値となるため、
+ * 厳密なフレーム単位ではなく疑似コマ送り用の目安として使用する。
+ */
+fun playerPseudoFrameStepMs(
+    frameRate: Float,
+    fallbackMs: Long = PLAYER_PSEUDO_FRAME_STEP_MS
+): Long {
+    val safeFallbackMs = fallbackMs.coerceAtLeast(1L)
+
+    if (!frameRate.isFinite() || frameRate <= 0f) {
+        return safeFallbackMs
+    }
+
+    return (1000.0 / frameRate.toDouble())
+        .roundToLong()
+        .coerceAtLeast(1L)
+}
+
 private const val PLAYER_HORIZONTAL_DRAG_SEEK_MS_PER_PIXEL = 80.0
 
 /**
