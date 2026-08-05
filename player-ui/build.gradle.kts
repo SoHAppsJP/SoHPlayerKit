@@ -32,6 +32,7 @@ dependencies {
     api(platform(libs.androidx.compose.bom))
     api(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.foundation)
+    implementation(libs.androidx.compose.material3)
 
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.core.ktx)
