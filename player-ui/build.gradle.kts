@@ -27,7 +27,7 @@ android {
 }
 
 dependencies {
-    implementation(project(":player-core"))
+    api(project(":player-core"))
 
     api(platform(libs.androidx.compose.bom))
     api(libs.androidx.compose.ui)
