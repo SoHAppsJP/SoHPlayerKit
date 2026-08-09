@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
@@ -37,6 +38,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -190,13 +193,17 @@ fun rememberPlayerGestureFeedbackState(): PlayerGestureFeedbackState {
 
 /**
  * Displays gesture feedback text and the horizontal seek progress bar.
+ *
+ * The seek progress bar is positioned relative to the centered feedback message,
+ * rather than relative to the bottom of the screen. This keeps the seek time and
+ * progress bar visually grouped in both portrait and landscape orientations.
  */
 @Composable
 fun PlayerGestureFeedbackOverlay(
     state: PlayerGestureFeedbackState,
     modifier: Modifier = Modifier,
     messageAutoHideMs: Long = 900L,
-    seekProgressBottomPadding: Dp = 86.dp
+    seekProgressSpacing: Dp = 16.dp
 ) {
     LaunchedEffect(state.messageVersion, messageAutoHideMs) {
         val version = state.messageVersion
@@ -206,13 +213,19 @@ fun PlayerGestureFeedbackOverlay(
         }
     }
 
+    var feedbackTextHeightPx by remember { mutableIntStateOf(0) }
+    val density = LocalDensity.current
+    val seekProgressOffset = with(density) {
+        (feedbackTextHeightPx / 2.0f).toDp() + seekProgressSpacing + 4.dp
+    }
+
     Box(modifier = modifier.fillMaxSize()) {
         if (state.seekProgressVisible) {
             Box(
                 modifier = Modifier
-                    .align(Alignment.BottomCenter)
+                    .align(Alignment.Center)
+                    .offset(y = seekProgressOffset)
                     .fillMaxWidth(0.84f)
-                    .padding(bottom = seekProgressBottomPadding)
                     .background(Color.White.copy(alpha = 0.28f), RoundedCornerShape(6.dp))
                     .height(8.dp)
             ) {
@@ -230,6 +243,9 @@ fun PlayerGestureFeedbackOverlay(
                 contentAlignment = Alignment.Center,
                 modifier = Modifier
                     .align(Alignment.Center)
+                    .onGloballyPositioned { coordinates ->
+                        feedbackTextHeightPx = coordinates.size.height
+                    }
                     .background(Color.Black.copy(alpha = 0.65f), RoundedCornerShape(10.dp))
                     .padding(horizontal = 18.dp, vertical = 10.dp)
             ) {
