@@ -21,9 +21,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import jp.sohapps.sohplayerkit.core.seek.PlayerSeekGestureState
+import jp.sohapps.sohplayerkit.ui.controls.PlayerControlsVisibilityState
+import jp.sohapps.sohplayerkit.ui.gesture.PlayerGestureActionController
 import jp.sohapps.sohplayerkit.ui.gesture.PlayerGestureFeedbackOverlay
 import jp.sohapps.sohplayerkit.ui.gesture.PlayerGestureFeedbackState
 import jp.sohapps.sohplayerkit.ui.gesture.PlayerGestureOverlay
+import jp.sohapps.sohplayerkit.ui.gesture.PlayerZoomState
 
 /**
  * Shared interaction/status overlay stack for a player surface.
@@ -78,4 +82,53 @@ fun BoxScope.PlayerOverlayHost(
     )
 
     controlsContent()
+}
+
+/**
+ * Binds the shared player interaction state holders to [PlayerOverlayHost].
+ *
+ * Playback-engine-specific double-tap actions remain callbacks, while the common tap, drag,
+ * brightness, speed, volume, zoom, seek-commit, feedback-clear, and overlay ordering behavior is
+ * kept in one place for ExoPlayer and LibVLC hosts.
+ */
+@Composable
+fun BoxScope.PlayerInteractionOverlayHost(
+    controlsState: PlayerControlsVisibilityState,
+    zoomState: PlayerZoomState,
+    gestureFeedbackState: PlayerGestureFeedbackState,
+    gestureActionController: PlayerGestureActionController,
+    seekGestureState: PlayerSeekGestureState,
+    statusState: PlayerStatusState,
+    onDoubleTapLeft: (Int) -> Unit,
+    onDoubleTapCenter: () -> Unit,
+    onDoubleTapRight: (Int) -> Unit,
+    gestureEnabled: Boolean = true,
+    controlsContent: @Composable BoxScope.() -> Unit = {}
+) {
+    PlayerOverlayHost(
+        isZoomed = zoomState.isZoomed,
+        gestureFeedbackState = gestureFeedbackState,
+        statusState = statusState,
+        onTap = controlsState::toggle,
+        onDoubleTapLeft = onDoubleTapLeft,
+        onDoubleTapCenter = onDoubleTapCenter,
+        onDoubleTapRight = onDoubleTapRight,
+        onHorizontalDrag = { deltaX -> seekGestureState.dragBy(deltaX) },
+        onVerticalDragLeft = gestureActionController::changeBrightness,
+        onVerticalDragCenter = gestureActionController::changeSpeed,
+        onVerticalDragRight = gestureActionController::changeVolume,
+        onPinchTransform = { zoom, pan ->
+            zoomState.transform(
+                zoomChange = zoom,
+                panX = pan.x,
+                panY = pan.y
+            )?.let(gestureFeedbackState::showZoom)
+        },
+        onGestureEnd = {
+            seekGestureState.commitDrag()
+            gestureFeedbackState.clear()
+        },
+        gestureEnabled = gestureEnabled,
+        controlsContent = controlsContent
+    )
 }
