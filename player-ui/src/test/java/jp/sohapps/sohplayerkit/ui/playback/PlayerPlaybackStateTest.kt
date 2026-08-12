@@ -38,7 +38,7 @@ class PlayerPlaybackStateTest {
     }
 
     @Test
-    fun updateReplacesWholeSnapshot() {
+    fun updateReplacesAllPlaybackValues() {
         val state = PlayerPlaybackState(PlayerPlaybackSnapshot())
 
         state.update(
@@ -50,6 +50,14 @@ class PlayerPlaybackStateTest {
         assertTrue(state.isPlaying)
         assertEquals(12_345L, state.currentPositionMs)
         assertEquals(60_000L, state.durationMs)
+        assertEquals(
+            PlayerPlaybackSnapshot(
+                isPlaying = true,
+                currentPositionMs = 12_345L,
+                durationMs = 60_000L
+            ),
+            state.snapshot
+        )
     }
 
     @Test
@@ -81,5 +89,13 @@ class PlayerPlaybackStateTest {
         assertFalse(state.isPlaying)
         assertEquals(2_000L, state.currentPositionMs)
         assertEquals(5_000L, state.durationMs)
+        assertEquals(
+            PlayerPlaybackSnapshot(
+                isPlaying = false,
+                currentPositionMs = 2_000L,
+                durationMs = 5_000L
+            ),
+            state.snapshot
+        )
     }
 }

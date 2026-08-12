@@ -19,6 +19,7 @@ package jp.sohapps.sohplayerkit.ui.playback
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -31,59 +32,74 @@ data class PlayerPlaybackSnapshot(
 )
 
 /**
- * Compose state holder for the basic playback snapshot shared by player engines.
+ * Compose state holder for the basic playback values shared by player engines.
+ *
+ * The three frequently consumed values intentionally use independent Compose states. A player
+ * polls its position several times per second, while most of the surface only observes whether
+ * playback is active. Keeping them separate prevents a position tick from invalidating every
+ * composable that only reads [isPlaying] or [durationMs].
  *
  * Engines remain responsible for deciding how and when these values are sampled. This class
- * only normalizes the values and gives callbacks, polling loops, seek previews, and controls a
- * single consistent source of truth.
+ * normalizes them and gives callbacks, polling loops, seek previews, and controls a consistent
+ * source of truth.
  */
 @Stable
 class PlayerPlaybackState internal constructor(
     initialSnapshot: PlayerPlaybackSnapshot
 ) {
-    var snapshot by mutableStateOf(normalizePlayerPlaybackSnapshot(initialSnapshot))
+    private val normalizedInitialSnapshot = normalizePlayerPlaybackSnapshot(initialSnapshot)
+
+    var isPlaying by mutableStateOf(normalizedInitialSnapshot.isPlaying)
         private set
 
-    val isPlaying: Boolean
-        get() = snapshot.isPlaying
+    var currentPositionMs by mutableLongStateOf(normalizedInitialSnapshot.currentPositionMs)
+        private set
 
-    val currentPositionMs: Long
-        get() = snapshot.currentPositionMs
+    var durationMs by mutableLongStateOf(normalizedInitialSnapshot.durationMs)
+        private set
 
-    val durationMs: Long
-        get() = snapshot.durationMs
+    /** Compatibility snapshot for callers that need all playback values at once. */
+    val snapshot: PlayerPlaybackSnapshot
+        get() = PlayerPlaybackSnapshot(
+            isPlaying = isPlaying,
+            currentPositionMs = currentPositionMs,
+            durationMs = durationMs
+        )
 
     fun update(
         isPlaying: Boolean,
         currentPositionMs: Long,
         durationMs: Long
     ) {
-        snapshot = normalizePlayerPlaybackSnapshot(
+        val normalized = normalizePlayerPlaybackSnapshot(
             PlayerPlaybackSnapshot(
                 isPlaying = isPlaying,
                 currentPositionMs = currentPositionMs,
                 durationMs = durationMs
             )
         )
+        updatePlaying(normalized.isPlaying)
+        updatePosition(normalized.currentPositionMs)
+        updateDuration(normalized.durationMs)
     }
 
     fun updatePlaying(isPlaying: Boolean) {
-        if (snapshot.isPlaying != isPlaying) {
-            snapshot = snapshot.copy(isPlaying = isPlaying)
+        if (this.isPlaying != isPlaying) {
+            this.isPlaying = isPlaying
         }
     }
 
     fun updatePosition(currentPositionMs: Long) {
         val normalized = currentPositionMs.coerceAtLeast(0L)
-        if (snapshot.currentPositionMs != normalized) {
-            snapshot = snapshot.copy(currentPositionMs = normalized)
+        if (this.currentPositionMs != normalized) {
+            this.currentPositionMs = normalized
         }
     }
 
     fun updateDuration(durationMs: Long) {
         val normalized = durationMs.coerceAtLeast(0L)
-        if (snapshot.durationMs != normalized) {
-            snapshot = snapshot.copy(durationMs = normalized)
+        if (this.durationMs != normalized) {
+            this.durationMs = normalized
         }
     }
 
