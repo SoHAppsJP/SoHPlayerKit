@@ -106,21 +106,7 @@ fun rememberPlayerUiState(
     window: Window?,
     keys: PlayerUiStateKeys,
     initialValues: PlayerUiInitialValues,
-    seekAction: (Long) -> Unit,
-    readColorValues: () -> PlayerColorValues = { initialValues.colorValues },
-    onPlaybackSpeedChanged: (Float) -> Unit = {},
-    onPlaybackEndActionChanged: (PlaybackEndAction) -> Unit = {},
-    onAspectModeChanged: (PlayerAspectMode) -> Unit = {},
-    onCustomAspectWidthChanged: (Float) -> Unit = {},
-    onCustomAspectHeightChanged: (Float) -> Unit = {},
-    onRotationLockedChanged: (Boolean) -> Unit = {},
-    onAvoidCutoutChanged: (Boolean) -> Unit = {},
-    onColorPresetChanged: (PlayerColorPreset) -> Unit = {},
-    onColorBrightnessChanged: (Float) -> Unit = {},
-    onColorContrastChanged: (Float) -> Unit = {},
-    onColorSaturationChanged: (Float) -> Unit = {},
-    onColorGammaChanged: (Float) -> Unit = {},
-    onColorTemperatureChanged: (Float) -> Unit = {}
+    bindings: PlayerUiStateBindings
 ): PlayerUiState {
     val seekScope = rememberCoroutineScope()
     val controlsState = rememberPlayerControlsVisibilityState()
@@ -135,8 +121,8 @@ fun rememberPlayerUiState(
         initialPlaybackSpeed = initialValues.playbackSpeed,
         initialPlaybackEndAction = initialValues.playbackEndAction,
         onInteraction = controlsState::show,
-        onPlaybackSpeedChanged = onPlaybackSpeedChanged,
-        onPlaybackEndActionChanged = onPlaybackEndActionChanged
+        onPlaybackSpeedChanged = bindings.onPlaybackSpeedChanged,
+        onPlaybackEndActionChanged = bindings.onPlaybackEndActionChanged
     )
     val displayState = rememberPlayerDisplaySettingsState(
         key = keys.displaySettings,
@@ -146,24 +132,24 @@ fun rememberPlayerUiState(
         initialRotationLocked = initialValues.rotationLocked,
         initialAvoidCutout = initialValues.avoidCutout,
         onInteraction = controlsState::show,
-        onAspectModeChanged = onAspectModeChanged,
-        onCustomAspectWidthChanged = onCustomAspectWidthChanged,
-        onCustomAspectHeightChanged = onCustomAspectHeightChanged,
-        onRotationLockedChanged = onRotationLockedChanged,
-        onAvoidCutoutChanged = onAvoidCutoutChanged
+        onAspectModeChanged = bindings.onAspectModeChanged,
+        onCustomAspectWidthChanged = bindings.onCustomAspectWidthChanged,
+        onCustomAspectHeightChanged = bindings.onCustomAspectHeightChanged,
+        onRotationLockedChanged = bindings.onRotationLockedChanged,
+        onAvoidCutoutChanged = bindings.onAvoidCutoutChanged
     )
     val colorState = rememberPlayerColorState(
         key = keys.colorSettings,
         initialPreset = initialValues.colorPreset,
         initialValues = initialValues.colorValues,
         onInteraction = controlsState::show,
-        onPresetChanged = onColorPresetChanged,
-        readValues = readColorValues,
-        onBrightnessChanged = onColorBrightnessChanged,
-        onContrastChanged = onColorContrastChanged,
-        onSaturationChanged = onColorSaturationChanged,
-        onGammaChanged = onColorGammaChanged,
-        onTemperatureChanged = onColorTemperatureChanged
+        onPresetChanged = bindings.onColorPresetChanged,
+        readValues = bindings.readColorValues ?: { initialValues.colorValues },
+        onBrightnessChanged = bindings.onColorBrightnessChanged,
+        onContrastChanged = bindings.onColorContrastChanged,
+        onSaturationChanged = bindings.onColorSaturationChanged,
+        onGammaChanged = bindings.onColorGammaChanged,
+        onTemperatureChanged = bindings.onColorTemperatureChanged
     )
     val videoMetadata = rememberPlayerVideoMetadataState(
         key = keys.videoMetadata,
@@ -188,7 +174,7 @@ fun rememberPlayerUiState(
     val currentPlaybackState = rememberUpdatedState(playbackState)
     val currentPlaybackSettingsState = rememberUpdatedState(playbackSettingsState)
     val currentGestureFeedbackState = rememberUpdatedState(gestureFeedbackState)
-    val currentSeekAction = rememberUpdatedState(seekAction)
+    val currentSeekAction = rememberUpdatedState(bindings.seekAction)
     val seekGestureState = remember(keys.seek) {
         PlayerSeekGestureState(
             scope = seekScope,
