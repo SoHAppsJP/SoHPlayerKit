@@ -22,23 +22,19 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import jp.sohapps.sohplayerkit.ui.controls.PlayerControlsHost
-import jp.sohapps.sohplayerkit.ui.controls.PlayerSettingsIcons
-import jp.sohapps.sohplayerkit.ui.controls.PlayerTransportIcons
 
 /**
  * Shared player interaction and controls stack backed by a [PlayerUiState].
  *
  * This host owns no playback-engine state. ExoPlayer and LibVLC implementations provide their
- * engine-specific operations through [actions] while the common gesture overlay, status overlay,
- * control binding, seek preview behavior, and control-panel composition stay in one reusable place.
+ * engine-specific operations through [actions], while [config] supplies the shared control-panel
+ * configuration. Gesture overlay, status overlay, control binding, seek preview behavior, and
+ * control-panel composition stay in one reusable place.
  */
 @Composable
 fun BoxScope.PlayerUiHost(
     state: PlayerUiState,
-    seekBackMs: Long,
-    seekForwardMs: Long,
-    transportIcons: PlayerTransportIcons,
-    settingsIcons: PlayerSettingsIcons,
+    config: PlayerUiConfig,
     actions: PlayerUiActions,
     controlsModifier: Modifier = Modifier,
     gestureEnabled: Boolean = true,
@@ -66,10 +62,10 @@ fun BoxScope.PlayerUiHost(
             displayState = state.displayState,
             colorState = state.colorState,
             videoMetadata = state.videoMetadata,
-            seekBackMs = seekBackMs,
-            seekForwardMs = seekForwardMs,
-            transportIcons = transportIcons,
-            settingsIcons = settingsIcons,
+            seekBackMs = config.seekBackMs,
+            seekForwardMs = config.seekForwardMs,
+            transportIcons = config.transportIcons,
+            settingsIcons = config.settingsIcons,
             onPreviousClick = actions.onPreviousClick,
             onSeekToStartClick = actions.onSeekToStartClick,
             onSeekBackClick = actions.onSeekBackClick,
