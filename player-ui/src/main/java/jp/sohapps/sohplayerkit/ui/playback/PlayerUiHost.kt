@@ -29,9 +29,8 @@ import jp.sohapps.sohplayerkit.ui.controls.PlayerTransportIcons
  * Shared player interaction and controls stack backed by a [PlayerUiState].
  *
  * This host owns no playback-engine state. ExoPlayer and LibVLC implementations provide their
- * engine-specific transport and double-tap callbacks while the common gesture overlay, status
- * overlay, control binding, seek preview behavior, and control-panel composition stay in one
- * reusable place.
+ * engine-specific operations through [actions] while the common gesture overlay, status overlay,
+ * control binding, seek preview behavior, and control-panel composition stay in one reusable place.
  */
 @Composable
 fun BoxScope.PlayerUiHost(
@@ -40,16 +39,7 @@ fun BoxScope.PlayerUiHost(
     seekForwardMs: Long,
     transportIcons: PlayerTransportIcons,
     settingsIcons: PlayerSettingsIcons,
-    onDoubleTapLeft: (Int) -> Unit,
-    onDoubleTapCenter: () -> Unit,
-    onDoubleTapRight: (Int) -> Unit,
-    onPreviousClick: () -> Unit,
-    onSeekToStartClick: () -> Unit,
-    onSeekBackClick: () -> Unit,
-    onPlayPauseClick: () -> Unit,
-    onSeekForwardClick: () -> Unit,
-    onSeekToEndClick: () -> Unit,
-    onNextClick: () -> Unit,
+    actions: PlayerUiActions,
     controlsModifier: Modifier = Modifier,
     gestureEnabled: Boolean = true,
     videoRotationDegrees: Int? = state.videoMetadata.rotationDegrees,
@@ -64,9 +54,9 @@ fun BoxScope.PlayerUiHost(
         gestureActionController = state.gestureActionController,
         seekGestureState = state.seekGestureState,
         statusState = state.statusState,
-        onDoubleTapLeft = onDoubleTapLeft,
-        onDoubleTapCenter = onDoubleTapCenter,
-        onDoubleTapRight = onDoubleTapRight,
+        onDoubleTapLeft = actions.onDoubleTapLeft,
+        onDoubleTapCenter = actions.onDoubleTapCenter,
+        onDoubleTapRight = actions.onDoubleTapRight,
         gestureEnabled = gestureEnabled
     ) {
         PlayerControlsHost(
@@ -80,13 +70,13 @@ fun BoxScope.PlayerUiHost(
             seekForwardMs = seekForwardMs,
             transportIcons = transportIcons,
             settingsIcons = settingsIcons,
-            onPreviousClick = onPreviousClick,
-            onSeekToStartClick = onSeekToStartClick,
-            onSeekBackClick = onSeekBackClick,
-            onPlayPauseClick = onPlayPauseClick,
-            onSeekForwardClick = onSeekForwardClick,
-            onSeekToEndClick = onSeekToEndClick,
-            onNextClick = onNextClick,
+            onPreviousClick = actions.onPreviousClick,
+            onSeekToStartClick = actions.onSeekToStartClick,
+            onSeekBackClick = actions.onSeekBackClick,
+            onPlayPauseClick = actions.onPlayPauseClick,
+            onSeekForwardClick = actions.onSeekForwardClick,
+            onSeekToEndClick = actions.onSeekToEndClick,
+            onNextClick = actions.onNextClick,
             onSeek = { position, force ->
                 state.seekGestureState.seekTo(
                     positionMs = position,
