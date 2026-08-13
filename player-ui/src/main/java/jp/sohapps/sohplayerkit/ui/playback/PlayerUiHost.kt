@@ -21,17 +21,12 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import jp.sohapps.sohplayerkit.core.seek.PlayerSeekGestureState
 import jp.sohapps.sohplayerkit.ui.controls.PlayerControlsHost
-import jp.sohapps.sohplayerkit.ui.controls.PlayerControlsVisibilityState
 import jp.sohapps.sohplayerkit.ui.controls.PlayerSettingsIcons
 import jp.sohapps.sohplayerkit.ui.controls.PlayerTransportIcons
-import jp.sohapps.sohplayerkit.ui.gesture.PlayerGestureActionController
-import jp.sohapps.sohplayerkit.ui.gesture.PlayerGestureFeedbackState
-import jp.sohapps.sohplayerkit.ui.gesture.PlayerZoomState
 
 /**
- * Shared player interaction and controls stack.
+ * Shared player interaction and controls stack backed by a [PlayerUiState].
  *
  * This host owns no playback-engine state. ExoPlayer and LibVLC implementations provide their
  * engine-specific transport and double-tap callbacks while the common gesture overlay, status
@@ -40,17 +35,7 @@ import jp.sohapps.sohplayerkit.ui.gesture.PlayerZoomState
  */
 @Composable
 fun BoxScope.PlayerUiHost(
-    controlsState: PlayerControlsVisibilityState,
-    playbackState: PlayerPlaybackState,
-    playbackSettingsState: PlayerPlaybackSettingsState,
-    displayState: PlayerDisplaySettingsState,
-    colorState: PlayerColorState,
-    videoMetadata: PlayerVideoMetadataState,
-    zoomState: PlayerZoomState,
-    gestureFeedbackState: PlayerGestureFeedbackState,
-    gestureActionController: PlayerGestureActionController,
-    seekGestureState: PlayerSeekGestureState,
-    statusState: PlayerStatusState,
+    state: PlayerUiState,
     seekBackMs: Long,
     seekForwardMs: Long,
     transportIcons: PlayerTransportIcons,
@@ -67,30 +52,30 @@ fun BoxScope.PlayerUiHost(
     onNextClick: () -> Unit,
     controlsModifier: Modifier = Modifier,
     gestureEnabled: Boolean = true,
-    videoRotationDegrees: Int? = videoMetadata.rotationDegrees,
-    videoPixelRatio: Float? = videoMetadata.pixelRatio,
+    videoRotationDegrees: Int? = state.videoMetadata.rotationDegrees,
+    videoPixelRatio: Float? = state.videoMetadata.pixelRatio,
     topActions: @Composable RowScope.() -> Unit = {},
     supplementalContent: @Composable ColumnScope.() -> Unit = {}
 ) {
     PlayerInteractionOverlayHost(
-        controlsState = controlsState,
-        zoomState = zoomState,
-        gestureFeedbackState = gestureFeedbackState,
-        gestureActionController = gestureActionController,
-        seekGestureState = seekGestureState,
-        statusState = statusState,
+        controlsState = state.controlsState,
+        zoomState = state.zoomState,
+        gestureFeedbackState = state.gestureFeedbackState,
+        gestureActionController = state.gestureActionController,
+        seekGestureState = state.seekGestureState,
+        statusState = state.statusState,
         onDoubleTapLeft = onDoubleTapLeft,
         onDoubleTapCenter = onDoubleTapCenter,
         onDoubleTapRight = onDoubleTapRight,
         gestureEnabled = gestureEnabled
     ) {
         PlayerControlsHost(
-            controlsState = controlsState,
-            playbackState = playbackState,
-            playbackSettingsState = playbackSettingsState,
-            displayState = displayState,
-            colorState = colorState,
-            videoMetadata = videoMetadata,
+            controlsState = state.controlsState,
+            playbackState = state.playbackState,
+            playbackSettingsState = state.playbackSettingsState,
+            displayState = state.displayState,
+            colorState = state.colorState,
+            videoMetadata = state.videoMetadata,
             seekBackMs = seekBackMs,
             seekForwardMs = seekForwardMs,
             transportIcons = transportIcons,
@@ -103,13 +88,13 @@ fun BoxScope.PlayerUiHost(
             onSeekToEndClick = onSeekToEndClick,
             onNextClick = onNextClick,
             onSeek = { position, force ->
-                seekGestureState.seekTo(
+                state.seekGestureState.seekTo(
                     positionMs = position,
                     force = force,
                     showFeedback = false
                 )
             },
-            onClearTransientFeedback = gestureFeedbackState::clear,
+            onClearTransientFeedback = state.gestureFeedbackState::clear,
             modifier = controlsModifier,
             videoRotationDegrees = videoRotationDegrees,
             videoPixelRatio = videoPixelRatio,
