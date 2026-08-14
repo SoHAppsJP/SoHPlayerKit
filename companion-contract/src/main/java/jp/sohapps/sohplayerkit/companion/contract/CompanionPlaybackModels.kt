@@ -10,7 +10,9 @@ data class CompanionPlaybackRequest(
     val durationMs: Long? = null,
     val videoWidth: Int? = null,
     val videoHeight: Int? = null,
-    val videoFps: Float? = null
+    val videoFps: Float? = null,
+    val canNavigatePrevious: Boolean = false,
+    val canNavigateNext: Boolean = false
 ) {
     init {
         require(mimeType.isNotBlank()) { "mimeType must not be blank" }
@@ -25,9 +27,16 @@ data class CompanionPlaybackRequest(
     }
 }
 
+enum class CompanionPlaybackResultAction {
+    RETURN_TO_LIST,
+    PREVIOUS,
+    NEXT
+}
+
 data class CompanionPlaybackResult(
     val positionMs: Long,
-    val durationMs: Long? = null
+    val durationMs: Long? = null,
+    val action: CompanionPlaybackResultAction = CompanionPlaybackResultAction.RETURN_TO_LIST
 ) {
     init {
         require(positionMs >= 0L) { "positionMs must be non-negative" }

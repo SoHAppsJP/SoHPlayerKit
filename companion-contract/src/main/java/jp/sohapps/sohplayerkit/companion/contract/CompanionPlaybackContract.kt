@@ -14,7 +14,10 @@ object CompanionPlaybackContract {
     const val EXTRA_VIDEO_WIDTH = "jp.sohapps.sohplayerkit.companion.extra.VIDEO_WIDTH"
     const val EXTRA_VIDEO_HEIGHT = "jp.sohapps.sohplayerkit.companion.extra.VIDEO_HEIGHT"
     const val EXTRA_VIDEO_FPS = "jp.sohapps.sohplayerkit.companion.extra.VIDEO_FPS"
+    const val EXTRA_CAN_NAVIGATE_PREVIOUS = "jp.sohapps.sohplayerkit.companion.extra.CAN_NAVIGATE_PREVIOUS"
+    const val EXTRA_CAN_NAVIGATE_NEXT = "jp.sohapps.sohplayerkit.companion.extra.CAN_NAVIGATE_NEXT"
     const val EXTRA_POSITION_MS = "jp.sohapps.sohplayerkit.companion.extra.POSITION_MS"
+    const val EXTRA_RESULT_ACTION = "jp.sohapps.sohplayerkit.companion.extra.RESULT_ACTION"
 
     fun createPlayIntent(request: CompanionPlaybackRequest): Intent {
         return Intent(ACTION_PLAY).apply {
@@ -26,6 +29,8 @@ object CompanionPlaybackContract {
             request.videoWidth?.let { putExtra(EXTRA_VIDEO_WIDTH, it) }
             request.videoHeight?.let { putExtra(EXTRA_VIDEO_HEIGHT, it) }
             request.videoFps?.let { putExtra(EXTRA_VIDEO_FPS, it) }
+            putExtra(EXTRA_CAN_NAVIGATE_PREVIOUS, request.canNavigatePrevious)
+            putExtra(EXTRA_CAN_NAVIGATE_NEXT, request.canNavigateNext)
         }
     }
 
@@ -55,7 +60,9 @@ object CompanionPlaybackContract {
                 durationMs = intent.positiveLongExtraOrNull(EXTRA_DURATION_MS),
                 videoWidth = intent.positiveIntExtraOrNull(EXTRA_VIDEO_WIDTH),
                 videoHeight = intent.positiveIntExtraOrNull(EXTRA_VIDEO_HEIGHT),
-                videoFps = intent.positiveFiniteFloatExtraOrNull(EXTRA_VIDEO_FPS)
+                videoFps = intent.positiveFiniteFloatExtraOrNull(EXTRA_VIDEO_FPS),
+                canNavigatePrevious = intent.getBooleanExtra(EXTRA_CAN_NAVIGATE_PREVIOUS, false),
+                canNavigateNext = intent.getBooleanExtra(EXTRA_CAN_NAVIGATE_NEXT, false)
             )
         }.getOrNull()
     }
@@ -64,6 +71,7 @@ object CompanionPlaybackContract {
         return Intent().apply {
             putExtra(EXTRA_PROTOCOL_VERSION, PROTOCOL_VERSION)
             putExtra(EXTRA_POSITION_MS, result.positionMs)
+            putExtra(EXTRA_RESULT_ACTION, result.action.name)
             result.durationMs?.let { putExtra(EXTRA_DURATION_MS, it) }
         }
     }
@@ -82,11 +90,17 @@ object CompanionPlaybackContract {
         val positionMs = intent.getLongExtra(EXTRA_POSITION_MS, -1L)
             .takeIf { it >= 0L }
             ?: return null
+        val action = intent.getStringExtra(EXTRA_RESULT_ACTION)
+            ?.let { encoded ->
+                runCatching { CompanionPlaybackResultAction.valueOf(encoded) }.getOrNull()
+            }
+            ?: CompanionPlaybackResultAction.RETURN_TO_LIST
 
         return runCatching {
             CompanionPlaybackResult(
                 positionMs = positionMs,
-                durationMs = intent.positiveLongExtraOrNull(EXTRA_DURATION_MS)
+                durationMs = intent.positiveLongExtraOrNull(EXTRA_DURATION_MS),
+                action = action
             )
         }.getOrNull()
     }

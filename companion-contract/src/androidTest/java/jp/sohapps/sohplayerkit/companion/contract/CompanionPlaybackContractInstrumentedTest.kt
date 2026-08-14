@@ -17,7 +17,9 @@ class CompanionPlaybackContractInstrumentedTest {
             durationMs = 2_500_000L,
             videoWidth = 1280,
             videoHeight = 720,
-            videoFps = 29.97f
+            videoFps = 29.97f,
+            canNavigatePrevious = true,
+            canNavigateNext = true
         )
 
         val parsed = CompanionPlaybackContract.parsePlayRequest(
@@ -73,10 +75,11 @@ class CompanionPlaybackContractInstrumentedTest {
     }
 
     @Test
-    fun result_roundTripsFinalPositionAndDuration() {
+    fun result_roundTripsFinalPositionDurationAndAction() {
         val result = CompanionPlaybackResult(
             positionMs = 2_493_000L,
-            durationMs = 2_500_000L
+            durationMs = 2_500_000L,
+            action = CompanionPlaybackResultAction.NEXT
         )
 
         val parsed = CompanionPlaybackContract.parseResult(
@@ -84,6 +87,27 @@ class CompanionPlaybackContractInstrumentedTest {
         )
 
         assertEquals(result, parsed)
+    }
+
+    @Test
+    fun result_withoutAction_defaultsToReturnToList() {
+        val intent = Intent().apply {
+            putExtra(
+                CompanionPlaybackContract.EXTRA_PROTOCOL_VERSION,
+                CompanionPlaybackContract.PROTOCOL_VERSION
+            )
+            putExtra(CompanionPlaybackContract.EXTRA_POSITION_MS, 1_000L)
+        }
+
+        val parsed = CompanionPlaybackContract.parseResult(intent)
+
+        assertEquals(
+            CompanionPlaybackResult(
+                positionMs = 1_000L,
+                action = CompanionPlaybackResultAction.RETURN_TO_LIST
+            ),
+            parsed
+        )
     }
 
     @Test
