@@ -19,7 +19,8 @@ class CompanionPlaybackContractInstrumentedTest {
             videoHeight = 720,
             videoFps = 29.97f,
             canNavigatePrevious = true,
-            canNavigateNext = true
+            canNavigateNext = true,
+            playerSettings = samplePlayerSettings()
         )
 
         val parsed = CompanionPlaybackContract.parsePlayRequest(
@@ -79,7 +80,8 @@ class CompanionPlaybackContractInstrumentedTest {
         val result = CompanionPlaybackResult(
             positionMs = 2_493_000L,
             durationMs = 2_500_000L,
-            action = CompanionPlaybackResultAction.NEXT
+            action = CompanionPlaybackResultAction.NEXT,
+            playerSettings = samplePlayerSettings()
         )
 
         val parsed = CompanionPlaybackContract.parseResult(
@@ -121,4 +123,27 @@ class CompanionPlaybackContractInstrumentedTest {
 
         assertNull(CompanionPlaybackContract.parseResult(intent))
     }
+    private fun samplePlayerSettings(): CompanionPlayerSettingsSnapshot {
+        return CompanionPlayerSettingsSnapshot(
+            buttonSeekBackMs = 7_000L,
+            buttonSeekForwardMs = 20_000L,
+            doubleTapSeekBackMs = 6_000L,
+            doubleTapSeekForwardMs = 12_000L,
+            controlsAutoHideMs = 4_000L,
+            playbackSpeed = 1.25f,
+            playbackEndAction = "NEXT",
+            aspectMode = "RATIO_16_9",
+            customAspectWidth = 21.0f,
+            customAspectHeight = 9.0f,
+            rotationLocked = true,
+            avoidCutout = false,
+            colorPreset = "CUSTOM",
+            colorBrightness = 0.1f,
+            colorContrast = 1.1f,
+            colorSaturation = 1.2f,
+            colorGamma = 0.95f,
+            colorTemperature = -0.05f
+        )
+    }
+
 }
