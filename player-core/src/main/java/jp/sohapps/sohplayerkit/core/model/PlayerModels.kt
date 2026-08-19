@@ -65,5 +65,6 @@ data class PlaybackVideoInfo(
     val videoBitrate: Int? = null,
     val audioBitrate: Int? = null,
     val audioTrackCount: Int? = null,
-    val subtitleTrackCount: Int? = null
+    val subtitleTrackCount: Int? = null,
+    val fileName: String? = null
 )

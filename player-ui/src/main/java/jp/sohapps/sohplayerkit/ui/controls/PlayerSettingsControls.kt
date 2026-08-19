@@ -416,6 +416,9 @@ private fun PlayerVideoInfoMenu(
     playbackVideoInfo: PlaybackVideoInfo
 ) {
     PlayerMenuSection(title = "ビデオ情報") {
+        playbackVideoInfo.fileName?.takeIf { it.isNotBlank() }?.let { fileName ->
+            Text("ファイル名: $fileName", color = Color.White, fontSize = 12.sp)
+        }
         Text(
             "解像度: ${formatPlayerSettingsVideoSize(videoWidth, videoHeight)}",
             color = Color.White,
